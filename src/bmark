@@ -284,6 +284,7 @@ function _edit_bookmark() {
   [[ -n "$URL" ]] && bookmark_conditions+=(" url = '$URL'")
   [[ -n "$TITLE" ]] && bookmark_conditions+=(" title = '$TITLE'")
   [[ -n "$NOTES" ]] && bookmark_conditions+=(" note = '$NOTES'")
+  bookmark_conditions+=(" updated_at = '$(date +%s)'")
 
   bookmark_id=$(sqlite3 "$DATABASE_PATH" "SELECT id FROM bookmarks WHERE $id_field = '$id';")
   [[ -z "$bookmark_id" ]] && {
