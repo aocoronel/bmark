@@ -24,16 +24,18 @@ $(_text "$BLUE" "Commands:")
   import                                  Import bookmarks from HTML file
   insert URL TAG TITLE NOTES              Insert a new bookmark
   list URL TAG TITLE NOTES                List all bookmarks
+  setup                                   Manually create a new database
 
 $(_text "$BLUE" "Flags:")
-  -h                            Displays this message and exits
-  --help                        Displays this message and exits
-  --note <NOTE>                 Query for NOTE
-  -r                            List only the URL
-  -s                            List will match given query
-  --tag <TAG>                   Query for TAG
-  --title <TITLE>               Query for TITLE
-  --url <URL>                   Query for URL
+  -h                   Displays this message and exits
+  --help               Displays this message and exits
+  -d DATABASE          Use an alternative database
+  --note <NOTE>        Query for NOTE
+  -r                   List only the URL
+  -s                   List will match given query
+  --tag <TAG>          Query for TAG
+  --title <TITLE>      Query for TITLE
+  --url <URL>          Query for URL
 
 $(_text "$BLUE" "Examples:")
   bmark insert URL TAG TITLE NOTES
@@ -372,10 +374,14 @@ function main() {
 function parser() {
   local id id_field html_file
 
-  while getopts ":h-rfs" opt; do
+  while getopts ":h-rfsd:" opt; do
     case "$opt" in
     f)
       FORCE=1
+      ;;
+    d)
+      DATABASE_FILE=$OPTARG.db
+      DATABASE_PATH="$DATABASE_DIR/$DATABASE_FILE"
       ;;
     h)
       help
@@ -476,6 +482,9 @@ function parser() {
       shift
       html_file=$1
       _importer export "$html_file"
+      ;;
+    setup)
+      main
       ;;
     list)
       shift
