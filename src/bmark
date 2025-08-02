@@ -32,7 +32,7 @@ $(_text "$BLUE" "Flags:")
   -d DATABASE          Use an alternative database
   --note <NOTE>        Query for NOTE
   -r                   List only the URL
-  -s                   List will match given query
+  -s                   List will strictly match given query
   --tag <TAG>          Query for TAG
   --title <TITLE>      Query for TITLE
   --url <URL>          Query for URL
