@@ -1,0 +1,146 @@
+.TH bmark 1 "August 2025" "1.0.0" "User Commands"
+.SH NAME
+bmark \- A simple bookmark manager
+.SH SYNOPSIS
+.B bmark
+[OPTIONS] <COMMAND> [ARGUMENTS]
+.SH DESCRIPTION
+A simple bookmark manager that aims to be simple, while not keeping in your way in the long-term.
+
+bmark is inspired by similar tools like buku(1) and bmm(1). It also uses SQLite as the backend.
+
+This tool was created, because I feel both buku(1) and bmm(1) offer unnecessary features. So I made `bmark` with the bare minimum features you would expect a bookmark manager to have.
+
+.SH OPTIONS
+.TP
+.B -d DATABASE
+
+Use a different database other than the default "bookmark.db".
+.TP
+.B -r
+
+When using the 'list' command, the only output will be the url column.
+.TP
+.B -s
+
+Queries used in the 'list' command will be stricter. Instead of queries use the 'OR' operator, they will use the 'AND'.
+Force. Bypass confirmation dialogs. May be destructive.
+.TP
+.B -h, --help
+
+Display the help message and exits.
+.TP
+.B --tag <TAG>
+
+Define tag to be used in the following operations: insert, list, edit and delete.
+
+.B bmark --tag golang list
+
+Will display all bookmarks including the 'golang' tag.
+
+.B bmark --tag golang delete
+
+Will delete the 'golang' bookmark from the database.
+
+.B bmark --tag golang edit id=1
+
+Will insert the 'golang' tag to the bookmark identified by the '1' id.
+.TP
+.B --note <NOTE>
+Define note to be used in the following operations: insert, list and edit.
+
+.B bmark --note "My example note" list
+
+Will display all bookmarks including the "My example note" note.
+
+.B bmark --note "My example note" edit id=1
+
+Will update the "My example note" note to the bookmark identified by the '1' id.
+.TP
+.B --title <TITLE>
+Define title to be used in the following operations: insert, list and edit.
+
+.B bmark --title "My example title" list
+
+Will display all bookmarks including the "My example title" title.
+
+.B bmark --title "My example title" edit id=1
+
+Will update the "My example title" title to the bookmark identified by the '1' id.
+.TP
+.B --url <URL>
+Define url to be used in the following operations: insert, list, delete and edit.
+
+.B bmark --url "https://example.com" list
+
+Will display all bookmarks including the "https://example.com" url. This also include the url siblings like "https://example.com/example".
+
+.B bmark --tag golang delete
+
+Will delete the 'golang' bookmark from the database.
+
+.B bmark --url "https://example.com" edit id=1
+
+Will update the "https://example.com" url to the bookmark identified by the '1' id.
+
+.SH COMMANDS
+.TP
+.B delete <ID> OR <TAG> OR <URL>
+
+Will delete a bookmark containing a id or url, or delete a tag.
+.TP
+.B edit <FIELD>=<VALUE>
+
+Will edit a bookmark using a specific field and its value. All the fields include: id, tag, title, note and url.
+
+.B bmark --url "https://example.com" edit id=1
+
+Will update the url to the bookmark containing the id '1'.
+
+.B bmark --tag golang edit tag=go
+
+Will rename the 'go' tag to 'golang'.
+.TP
+.B export
+
+Will export all your bookmarks to HTML format.
+.B import <FILE>
+
+Will import all bookmarks from HTML format.
+.TP
+.B insert <URL> <TAG> <TITLE> <NOTE>
+
+Will insert a new bookmark. Just the url is required.
+
+If no OPTION is used, all the following arguments after the 'insert' command will use the URL, TAG, TITLE and NOTE order. If a OPTION is used, like '--tag' the order will be URL, TITLE and NOTE.
+
+To add multiple tags at once, separate words with comma. If the tag is a multi-word, use it between double quotes.
+
+.B bmark --note "My note" insert https://example.com example_tag,example_tag2 Example
+.TP
+.B list <URL> <TAG> <TITLE> <NOTE>
+
+Will list bookmarks.
+
+If no OPTION is used, all the following arguments after the 'list' command will use the URL, TAG, TITLE and NOTE order. If a OPTION is used, like '--tag' the order will be URL, TITLE and NOTE.
+
+Using the OPTION '-s' will make queries stricter, by searching bookmarks that contain a value AND another, instead of a value OR another.
+.TP
+.B setup
+
+Will overwrite and generate a new database, if used explicitly. When no commands is used, and a database does not exist, a new one will be generated only if it does not exist.
+
+Combine with the OPTION '-d' to generate a different database, other than the default 'bookmark.db'.
+.TP
+.B version
+
+Display the current version number.
+
+.SH EXIT STATUS
+0 on success, non-zero on failure.
+
+.SH AUTHOR
+Augusto Coronel <aoc@getgoogleoff.me>
+
+.SH SEE ALSO
+bmm(1), buku(1), sqlite(1)
