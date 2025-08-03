@@ -17,14 +17,15 @@ $(_text "$BLUE" "Usage:")
   bmark -h | bmark help
 
 $(_text "$BLUE" "Commands:")
-  delete ID or URL                        Delete a bookmark
-  edit FIELD=VALUE URL TAG TITLE NOTES    Edit a bookmark
-  export                                  Export bookmarks to HTML file
-  help                                    Displays this message and exits
-  import                                  Import bookmarks from HTML file
-  insert URL TAG TITLE NOTES              Insert a new bookmark
-  list URL TAG TITLE NOTES                List all bookmarks
-  setup                                   Manually create a new database
+  delete ID or URL                      Delete a bookmark
+  edit FIELD=VALUE URL TAG TITLE NOTES  Edit a bookmark
+  export                                Export bookmarks to HTML file
+  help                                  Displays this message and exits
+  import                                Import bookmarks from HTML file
+  insert URL TAG TITLE NOTES            Insert a new bookmark
+  list URL TAG TITLE NOTES              List all bookmarks
+  setup                                 Manually create a new database
+  version                               Display current version
 
 $(_text "$BLUE" "Flags:")
   -h                   Displays this message and exits
@@ -41,6 +42,10 @@ $(_text "$BLUE" "Examples:")
   bmark insert URL TAG TITLE NOTES
   bmark --tag "TAG" --note "NOTE" list URL TITLE
 EOF
+}
+
+function version() {
+  echo "1.0.0"
 }
 
 function _text() {
@@ -482,6 +487,9 @@ function parser() {
       shift
       html_file=$1
       _importer export "$html_file"
+      ;;
+    version)
+      version
       ;;
     setup)
       main
