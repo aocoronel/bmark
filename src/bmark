@@ -17,26 +17,24 @@ $(_text "$BLUE" "Usage:")
   bmark -h | bmark help
 
 $(_text "$BLUE" "Commands:")
-  delete ID or URL                      Delete a bookmark
+  delete ID, URL or TAG                 Delete a bookmark or tag
   edit FIELD=VALUE URL TAG TITLE NOTES  Edit a bookmark
   export                                Export bookmarks to HTML file
-  help                                  Displays this message and exits
-  import                                Import bookmarks from HTML file
+  import FILE                           Import bookmarks from HTML file
   insert URL TAG TITLE NOTES            Insert a new bookmark
   list URL TAG TITLE NOTES              List all bookmarks
   setup                                 Manually create a new database
   version                               Display current version
 
 $(_text "$BLUE" "Flags:")
-  -h                   Displays this message and exits
-  --help               Displays this message and exits
-  -d DATABASE          Use an alternative database
   --note <NOTE>        Query for NOTE
-  -r                   List only the URL
-  -s                   List will strictly match given query
   --tag <TAG>          Query for TAG
   --title <TITLE>      Query for TITLE
   --url <URL>          Query for URL
+  -d DATABASE          Use an alternative database
+  -h, --help           Displays this message and exits
+  -r                   List only the URL
+  -s                   List will strictly match given query
 
 $(_text "$BLUE" "Examples:")
   bmark insert URL TAG TITLE NOTES
