@@ -488,6 +488,7 @@ function parser() {
       ;;
     version)
       version
+      exit 0
       ;;
     setup)
       main
