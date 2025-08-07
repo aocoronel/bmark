@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-DATABASE_DIR="$HOME/.local/share/bookmarks"
-DATABASE_FILE=bookmark.db
-DATABASE_PATH="$DATABASE_DIR/$DATABASE_FILE"
+BMARK_DB_DIR=${BMARK_DB_DIR:-"$HOME/.local/share/bookmarks"}
+BMARK_FILE=${BMARK_FILE:-bookmark.db}
+DATABASE_PATH="$BMARK_DB_DIR/$BMARK_FILE"
 
 RED="$(tput setaf 196)"
 GREEN="$(tput setaf 82)"
@@ -118,7 +118,7 @@ function _importer() {
 
 function _setup() {
   echo "Bookmark database not found. Creating a new one..."
-  mkdir -p "$DATABASE_DIR"
+  mkdir -p "$BMARK_DB_DIR"
   touch "$DATABASE_PATH"
   sqlite3 "$DATABASE_PATH" "PRAGMA foreign_keys = ON;
     CREATE TABLE bookmarks (
@@ -144,7 +144,7 @@ function _setup() {
     );
     CREATE INDEX idx_bookmark_id ON bookmark_tags (bookmark_id);
     CREATE INDEX idx_tag_id ON bookmark_tags (tag_id);"
-  _text "$GREEN" "A new database has been created at $DATABASE_DIR"
+  _text "$GREEN" "A new database has been created at $BMARK_DB_DIR"
 }
 
 function _delete() {
@@ -383,8 +383,8 @@ function parser() {
       FORCE=1
       ;;
     d)
-      DATABASE_FILE=$OPTARG.db
-      DATABASE_PATH="$DATABASE_DIR/$DATABASE_FILE"
+      BMARK_FILE=$OPTARG.db
+      DATABASE_PATH="$BMARK_DB_DIR/$BMARK_FILE"
       ;;
     h)
       help
