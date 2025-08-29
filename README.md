@@ -34,48 +34,32 @@ mv bmark/src/bmark-bulk.py ~/.local/bin/bmark-bulk.py
 ## Usage
 
 ```
-bmark | A simple bookmark manager
+A simple bookmark manager
 
 Usage:
   bmark FLAG <FLAG_INPUT> COMMAND INPUT
   bmark -h | bmark help
 
 Commands:
-  delete ID or URL                        Delete a bookmark
-  edit FIELD=VALUE URL TAG TITLE NOTES    Edit a bookmark
-  export                                  Export bookmarks to HTML file
-  help                                    Displa
-cd bmark && mv src/bmark $HOME/.local/bin
-chmod +x $HOME/.local/bin/bmark
-```
-
-## Usage
-
-```
-bmark | A simple bookmark manager
-
-Usage:
-  bmark FLAG <FLAG_INPUT> COMMAND INPUT
-  bmark -h | bmark help
-
-Commands:
-  delete ID or URL                        Delete a bookmark
-  edit FIELD=VALUE URL TAG TITLE NOTES    Edit a bookmark
-  export                                  Export bookmarks to HTML file
-  help                                    Displays this message and exits
-  import                                  Import bookmarks from HTML file
-  insert URL TAG TITLE NOTES              Insert a new bookmark
-  list URL TAG TITLE NOTES                List all bookmarks
+  bulk                                  Edit the database using an EDITOR
+  delete ID, URL or TAG                 Delete a bookmark or tag
+  edit FIELD=VALUE URL TAG TITLE NOTES  Edit a bookmark
+  export                                Export bookmarks to HTML file
+  import FILE                           Import bookmarks from HTML file
+  insert URL TAG TITLE NOTES            Insert a new bookmark
+  list URL TAG TITLE NOTES              List all bookmarks
+  setup                                 Manually create a new database
+  version                               Display current version
 
 Flags:
-  -h                            Displays this message and exits
-  --help                        Displays this message and exits
-  --note <NOTE>                 Query for NOTE
-  -r                            List only the URL
-  -s                            List will match given query
-  --tag <TAG>                   Query for TAG
-  --title <TITLE>               Query for TITLE
-  --url <URL>                   Query for URL
+  --note <NOTE>        Query for NOTE
+  --tag <TAG>          Query for TAG
+  --title <TITLE>      Query for TITLE
+  --url <URL>          Query for URL
+  -d DATABASE          Use an alternative database
+  -h, --help           Displays this message and exits
+  -r                   List only the URL
+  -s                   List will strictly match given query
 
 Examples:
   bmark insert URL TAG TITLE NOTES
