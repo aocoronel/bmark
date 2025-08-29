@@ -26,6 +26,25 @@ This tool follows the UNIX philosophy. Extra functionalities like opening in the
 
 ```bash
 git clone https://github.com/aocoronel/bmark
+chmod +x bmark/src/bmark bmark/src/bmark-bulk.py
+mv bmark/src/bmark ~/.local/bin/bmarkk
+mv bmark/src/bmark-bulk.py ~/.local/bin/bmark-bulk.py
+```
+
+## Usage
+
+```
+bmark | A simple bookmark manager
+
+Usage:
+  bmark FLAG <FLAG_INPUT> COMMAND INPUT
+  bmark -h | bmark help
+
+Commands:
+  delete ID or URL                        Delete a bookmark
+  edit FIELD=VALUE URL TAG TITLE NOTES    Edit a bookmark
+  export                                  Export bookmarks to HTML file
+  help                                    Displa
 cd bmark && mv src/bmark $HOME/.local/bin
 chmod +x $HOME/.local/bin/bmark
 ```

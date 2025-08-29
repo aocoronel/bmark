@@ -17,6 +17,7 @@ $(_text "$BLUE" "Usage:")
   bmark -h | bmark help
 
 $(_text "$BLUE" "Commands:")
+  bulk                                  Edit the database using an EDITOR
   delete ID, URL or TAG                 Delete a bookmark or tag
   edit FIELD=VALUE URL TAG TITLE NOTES  Edit a bookmark
   export                                Export bookmarks to HTML file
@@ -251,7 +252,6 @@ function _list() {
     query+=" $groupByClause;"
     sqlite3 "$DATABASE_PATH" "$query"
   fi
-  exit 0
 }
 
 function _edit_tags() {
@@ -274,6 +274,18 @@ function _edit_tags() {
   fi
   sqlite3 "$DATABASE_PATH" "$tag_query" && _text "$GREEN" "Renamed tag $id to $TAG"
   exit 0
+}
+
+function _bulk_edit() {
+  [ -z "$EDITOR" ] && EDITOR=nano
+  _list >staging.txt
+  $EDITOR staging.txt
+  comm -13 <(bmark | sort) <(cat staging.txt | sort) >staged.txt
+  rm staging.txt
+  python "$(dirname "${BASH_SOURCE[0]}")/bmark-bulk.py" || {
+    _error "Failed to apply bulk operations. The database is unchanged."
+  }
+  rm staged.txt
 }
 
 function _edit_bookmark() {
@@ -372,6 +384,7 @@ function main() {
     exit 0
   fi
   _list
+  exit 0
 }
 
 function parser() {
@@ -476,6 +489,11 @@ function parser() {
       getargs "$1" note && shift
       _insert
       ;;
+    bulk)
+      shift
+      _bulk_edit
+      exit 0
+      ;;
     import)
       shift
       html_file=$1
@@ -514,6 +532,7 @@ function parser() {
         getargs "$1" note && shift
       fi
       _list
+      exit 0
       ;;
     --help)
       help
