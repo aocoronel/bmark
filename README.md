@@ -31,6 +31,14 @@ mv bmark/src/bmark ~/.local/bin/bmarkk
 mv bmark/src/bmark-bulk.py ~/.local/bin/bmark-bulk.py
 ```
 
+### Utilities
+
+This script comes with two extra utility tools: `bmark-bulk` and `bmark-importer`, which extends `bmark` functionalities, but are not required.
+
+`bmark-bulk` is a Python script, which allows to make bulk edits in the database and apply changes efficiently without the need perform several commands to achieve the same result. Currently, adding new bookmarks through this tool is not allowed.
+
+`bmark-importer` is a Go tool, which facilitates the importing and exporting process from SQLite to HTML, and vice-versa.
+
 ## Usage
 
 ```
