@@ -279,12 +279,17 @@ function _edit_tags() {
   exit 0
 }
 
+function _bulk_edit_list() {
+  local fields="DISTINCT b.url, GROUP_CONCAT(t.tag, ',') AS tags, b.title, b.note"
+  local groupByClause="GROUP BY b.url"
+
+  sqlite3 -separator $'│' "$DATABASE_PATH" "SELECT $fields FROM bookmarks AS b LEFT JOIN bookmark_tags AS bt ON b.id = bt.bookmark_id LEFT JOIN tags AS t ON bt.tag_id = t.id $groupByClause;"
+}
+
 function _bulk_edit() {
   [ -z "$EDITOR" ] && EDITOR=nano
-  _list >staging.txt
-  $EDITOR staging.txt
-  comm -13 <(bmark | sort) <(cat staging.txt | sort) >staged.txt
-  rm staging.txt
+  _bulk_edit_list >staged.txt
+  $EDITOR staged.txt
   python "$(dirname "${BASH_SOURCE[0]}")/bmark-bulk.py" || {
     _error "Failed to apply bulk operations. The database is unchanged."
   }
