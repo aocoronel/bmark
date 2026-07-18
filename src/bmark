@@ -221,6 +221,9 @@ function _list() {
     fields="b.url"
   fi
 
+  if [[ -n "$ID" ]]; then
+    conditions+=("(b.id = $ID)")
+  fi
   if [[ -n "$TAG" ]]; then
     conditions+=("(t.tag LIKE '%$TAG%')")
   fi
@@ -349,6 +352,10 @@ function getargs() {
     URL=$arg
     [[ -n "$URL" ]] && URL=$(_escape_string "$URL")
     [ -z "$URL" ] && return 1
+  elif [ "$type" == "_id" ] && [ -z "$ID" ]; then
+    ID=$arg
+    [[ -n "$ID" ]] && ID=$(_escape_string "$ID")
+    [ -z "$ID" ] && return 1
   elif [ "$type" == "tag" ] && [ -z "$TAG" ]; then
     TAG=$arg
     [[ -n "$TAG" ]] && TAG=$(_escape_string "$TAG")
@@ -537,6 +544,10 @@ function parser() {
     --help)
       help
       exit 0
+      ;;
+    --id)
+      shift
+      getargs_flag "$1" _id && shift
       ;;
     --title)
       shift
