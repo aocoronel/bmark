@@ -37,7 +37,7 @@ This script comes with two extra utility tools: `bmark-bulk` and `bmark-importer
 
 `bmark-bulk` is a Python script, which allows to make bulk edits in the database and apply changes efficiently without the need perform several commands to achieve the same result. Currently, adding new bookmarks through this tool is not allowed.
 
-`bmark-importer` is a Go tool, which facilitates the importing and exporting process from SQLite to HTML, and vice-versa.
+`bmark-importer` is a Python script, which facilitates the importing and exporting process from SQLite to HTML, and vice-versa.
 
 ## Usage
 
