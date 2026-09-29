@@ -524,6 +524,11 @@ function parser() {
 		setup)
 			main
 			;;
+        sql)
+            shift
+    		sqlite3 "$DATABASE_PATH" "$@"
+            exit $?
+            ;;
 		list)
 			shift
 			if [ "$1" == "--help" ]; then
