@@ -288,6 +288,7 @@ function _bulk_edit() {
 	[ -z "$EDITOR" ] && EDITOR=nano
 	_bulk_edit_list >staged.txt
 	$EDITOR staged.txt
+    _confirmation "save" || rm staged.txt; return
 	python "$(dirname "${BASH_SOURCE[0]}")/bmark-bulk.py" || {
 		_error "Failed to apply bulk operations. The database is unchanged."
 	}
