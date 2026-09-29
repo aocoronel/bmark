@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import sys
 
 BMARK_DB_DIR = os.getenv("BMARK_DB_DIR")
 BMARK_FILE = os.getenv("BMARK_FILE")
@@ -23,7 +24,10 @@ cur.execute("PRAGMA foreign_keys = ON")
 
 seen_urls = set()
 
-with open('staged.txt', 'r') as f:
+assert(len(sys.argv) > 1)
+file = sys.argv[1]
+
+with open(file, 'r') as f:
     for line in f:
         parts = line.strip().split('│')
         if len(parts) < 4:
@@ -60,5 +64,5 @@ cur.execute("DELETE FROM tags WHERE id NOT IN (SELECT DISTINCT tag_id FROM bookm
 cur.execute("DELETE FROM bookmark_tags WHERE bookmark_id NOT IN (SELECT id FROM bookmarks)")
 
 conn.commit()
-print(f"Synced {len(seen_urls)} bookmarks")
+print(f"Synced {len(seen_urls)} bookmarks.")
 conn.close()

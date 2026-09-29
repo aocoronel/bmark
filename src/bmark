@@ -88,15 +88,15 @@ function _confirmation() {
 		return 0
 	else
 		echo -e "${BLUE}>> Are you sure you want to$(tput sgr0) ${RED}$action$(tput sgr0) ${BLUE}$value? (y/N)$(tput sgr0)"
-		local color text reset
 		read -r choice
-		if [ "$choice" == "Y" ] || [ "$choice" == "y" ]; then
-			unset choice
-			return 0
-		else
-			unset choice
-			return 1
-		fi
+        case "$choice" in
+            [Yy])
+                return 0
+                ;;
+            *)
+                return 1
+                ;;
+        esac
 	fi
 }
 
@@ -286,13 +286,17 @@ function _bulk_edit_list() {
 
 function _bulk_edit() {
 	[ -z "$EDITOR" ] && EDITOR=nano
-	_bulk_edit_list >staged.txt
-	$EDITOR staged.txt
-    _confirmation "save" || rm staged.txt; return
-	python "$(dirname "${BASH_SOURCE[0]}")/bmark-bulk.py" || {
+    temp_file=$(mktemp bmark_tmp.XXXXX)
+	_bulk_edit_list > $temp_file
+	$EDITOR $temp_file
+    _confirmation "save" || {
+        rm $temp_file
+        return
+    }
+	python "$(dirname "${BASH_SOURCE[0]}")/bmark-bulk.py" "$temp_file" || {
 		_error "Failed to apply bulk operations. The database is unchanged."
 	}
-	rm staged.txt
+	rm $temp_file
 }
 
 function _edit_bookmark() {
