@@ -1,4 +1,4 @@
-# bmark: A simple bookmark manager
+# Minimalistic bookmark manager
 
 A simple bookmark manager that aims to be simple, while not keeping in your way in the long-term.
 
@@ -8,70 +8,53 @@ This tool was created, because I feel both `buku` and `bmm` offer unnecessary fe
 
 ## Features
 
-- Add bookmarks
-  - Include title, tag and notes
-- Delete bookmarks or tags
-- Edit bookmarks or tags
-- Import from or export to HTML format (compatible with Firefox bookmarks)
-- List bookmarks with queries
-- List only URL
-
-This tool follows the UNIX philosophy. Extra functionalities like opening in the browser or piping to `fzf` and `rofi` may be done by the user.
+- Insert, edit, rename and delete bookmarks
+- Import from or export to HTML format (compatible with Firefox and Chrome)
+- Highly customizable printing
+- Execute arbitrary SQLite code
+- Searchable help
 
 ## Requirements
 
-- `sqlite3`
+- [odd](https://github.com/aocoronel/odd)
+- [odin-sqlite3](https://github.com/aocoronel/odin-sqlite3)
 
-## Installation
+## Compiling from source
 
 ```bash
-git clone https://github.com/aocoronel/bmark
-chmod +x bmark/src/bmark bmark/src/bmark-bulk.py
-mv bmark/src/bmark ~/.local/bin/bmarkk
-mv bmark/src/bmark-bulk.py ~/.local/bin/bmark-bulk.py
+git clone --depth 1 https://github.com/aocoronel/bmark
+odin run . -- release -local
 ```
-
-### Utilities
-
-This script comes with two extra utility tools: `bmark-bulk` and `bmark-importer`, which extends `bmark` functionalities, but are not required.
-
-`bmark-bulk` is a Python script, which allows to make bulk edits in the database and apply changes efficiently without the need perform several commands to achieve the same result. Currently, adding new bookmarks through this tool is not allowed.
-
-`bmark-importer` is a Python script, which facilitates the importing and exporting process from SQLite to HTML, and vice-versa.
 
 ## Usage
 
 ```
-A simple bookmark manager
-
 Usage:
-  bmark FLAG <FLAG_INPUT> COMMAND INPUT
-  bmark -h | bmark help
-
-Commands:
-  bulk                                  Edit the database using an EDITOR
-  delete ID, URL or TAG                 Delete a bookmark or tag
-  edit FIELD=VALUE URL TAG TITLE NOTES  Edit a bookmark
-  export                                Export bookmarks to HTML file
-  import FILE                           Import bookmarks from HTML file
-  insert URL TAG TITLE NOTES            Insert a new bookmark
-  list URL TAG TITLE NOTES              List all bookmarks
-  setup                                 Manually create a new database
-  version                               Display current version
-
+	bmark [cmd] [url] [tag] [title] [note] [-append] [-dry] [-file] [-force] [-id] [-print] [-separator] [-verbose]
 Flags:
-  --note <NOTE>        Query for NOTE
-  --tag <TAG>          Query for TAG
-  --title <TITLE>      Query for TITLE
-  --url <URL>          Query for URL
-  -d DATABASE          Use an alternative database
-  -h, --help           Displays this message and exits
-  -r                   List only the URL
-  -s                   List will strictly match given query
-
-Examples:
-  bmark insert URL TAG TITLE NOTES
-  bmark --tag "TAG" --note "NOTE" list URL TITLE
+	-cmd:<string>
+		Command to run
+		Accepts:
+		list,tag,edit,insert,delete,export,
+		import,bulk,version,search,help,sql
+	-url:<string>      | Bookmark URL
+	-tag:<string>      | Tag, comma separated
+	-title:<string>    | Bookmark title
+	-note:<string>     | Bookmark note
+	                   |
+	-append:<string>   | Append extra SQLite query
+	-dry               | Dry mode
+	-file:<string>
+		Pass alternative database
+		You can also set the BMARK_FILE environment variable
+	-force             | Force operation. See insert command
+	-id:<string>       | Database ID
+	-print:<string>
+		Fields to print, comma separated
+		Accepts: id,url,tag,title,note
+		This affects the print order as well
+	-separator:<rune>  | Separator while printing. Defaults to ' '
+	-verbose           | Enable verbosity
 ```
 
 ### Scripting
@@ -79,7 +62,7 @@ Examples:
 Pipe URLs to fzf and open in the browser
 
 ```bash
-bmark -r list | fzf -m | xargs -I {} xdg-open "{}"
+bmark -print:"url" list | fzf -m | xargs -I {} xdg-open "{}"
 ```
 
 ## Notes
