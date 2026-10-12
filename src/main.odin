@@ -766,6 +766,7 @@ search :: proc(opt: ^Option) {
 		comment := cmd.comment
 
 		lines := strings.split_lines(comment)
+		defer odin.delete(lines)
 
 		once: bool
 		for line, i in lines {
@@ -774,7 +775,9 @@ search :: proc(opt: ^Option) {
 					fmt.printfln("%s:", cmd.name)
 					once = true
 				}
-				for j := i - ccontext; j < len(lines) && j < i + ccontext; j += 1 {
+				begin := i - ccontext
+				if begin < 0 do begin = 0
+				for j := begin; j < len(lines) && j < i + ccontext; j += 1 {
 					term.iprint(lines[j], 4)
 					fmt.println()
 				}
