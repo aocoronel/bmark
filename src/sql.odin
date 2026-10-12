@@ -7,7 +7,7 @@ Extra abstractions for the SQLite bindings
 import odin "base:runtime"
 import "core:fmt"
 import "core:log"
-import sqlite "shared:sqlite"
+import sqlite "shared:odin-sqlite3"
 
 print_row :: proc(rows: [dynamic]sqlite.SQLite_Types, ctx: rawptr) {
 	for row in rows {

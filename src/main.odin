@@ -12,7 +12,7 @@ import "core:strings"
 import "core:unicode"
 import pipe "shared:odd/pipe"
 import term "shared:odd/term"
-import sqlite "shared:sqlite"
+import sqlite "shared:odin-sqlite3"
 
 VERSION :: "2.0.0"
 
