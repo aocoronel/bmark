@@ -1,0 +1,16 @@
+insert:13:31
+Some documentation
+delete:46:184
+Deletes a lot of stuff.
+Get things deleted
+Delete things
+So does delete them
+
+* Tips and Tricks
+
+Delete things
+
+* Examples
+
+prog delete 32
+list
