@@ -241,12 +241,12 @@ _import :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 		bookmark, ok := parse_bookmark_file(b)
 		if !ok do continue
 		bookmark.force = opt.force
-		insert(db, &bookmark, transactional = false)
+		insert(db, &bookmark, transactional = false) or_return
 	}
 
 	if !opt.dry {
-		has_err = false
 		commit(db) or_return
+		has_err = false
 	}
 
 	return true
@@ -414,8 +414,8 @@ insert :: proc(db: ^sqlite.SQLite3, opt: ^Option, transactional: bool = true) ->
 	}
 
 	if !opt.dry && transactional {
-		has_err = false
 		commit(db) or_return
+		has_err = false
 	}
 
 	if opt.verbose {
@@ -536,8 +536,8 @@ edit :: proc(db: ^sqlite.SQLite3, opt: ^Option, transactional: bool = true) -> b
 	}
 
 	if !opt.dry && transactional {
-		has_err = false
 		commit(db) or_return
+		has_err = false
 	}
 
 	return true
@@ -1024,7 +1024,7 @@ bulk :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 					url   = url,
 					force = true,
 				}
-				delete(db, &option, transactional = false)
+				delete(db, &option, transactional = false) or_return
 			}
 		}
 
@@ -1039,13 +1039,13 @@ bulk :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 					note  = note,
 					force = true,
 				}
-				insert(db, &option, transactional = false)
+				insert(db, &option, transactional = false) or_return
 			case .Delete:
 				option := Option {
 					url   = url,
 					force = true,
 				}
-				delete(db, &option, transactional = false)
+				delete(db, &option, transactional = false) or_return
 			}
 		}
 
@@ -1053,8 +1053,8 @@ bulk :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 	}
 
 	if !opt.dry {
-		has_err = false
 		commit(db) or_return
+		has_err = false
 	}
 
 	RESET :: "\x1b[0m"
@@ -1094,8 +1094,8 @@ sql :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 	if query != "" {
 		execute_row(db, query) or_return
 		if !opt.dry {
-			has_err = false
 			commit(db) or_return
+			has_err = false
 		}
 		return true
 	}
