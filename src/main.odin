@@ -825,6 +825,7 @@ help :: proc(opt: ^Option) {
 			}
 			written += fmt.printf("%s%s", cmd.name, strings.repeat(" ", padding))
 		}
+		fmt.println()
 		return
 	} else {
 		for cmd in cmds {
