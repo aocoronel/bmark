@@ -43,6 +43,7 @@ execute :: proc(db: ^sqlite.SQLite3, sql: string, args: ..any, loc := #caller_lo
 	stmt, status := sqlite.prepare(db, sql, ..args, loc = loc)
 	if status != nil {
 		sql_error(db, status, loc)
+		fmt.print(sqlite.shell_error_context(db, sql))
 		return false
 	}
 	status = sqlite.execute(stmt)
@@ -66,7 +67,7 @@ get_id :: proc(
 	query := fmt.tprintf("SELECT %s FROM %s WHERE %s = ? LIMIT 1", id_string, table, input_string)
 	stmt, status := sqlite.prepare(db, query, arg)
 	if status != nil {
-		log.error(sqlite.errmsg(db))
+		sql_error(db, status, loc)
 		return
 	}
 	rows: [dynamic]sqlite.SQLite_Types
@@ -96,7 +97,8 @@ execute_row :: proc(
 ) -> bool {
 	stmt, status := sqlite.prepare(db, sql, ..args)
 	if status != nil {
-		log.error(sqlite.errmsg(db))
+		sql_error(db, status, loc)
+		fmt.print(sqlite.shell_error_context(db, sql))
 		return false
 	}
 	rows: [dynamic]sqlite.SQLite_Types
