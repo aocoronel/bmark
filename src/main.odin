@@ -1112,9 +1112,12 @@ main :: proc() {
 		40 ..< 50 = "fatal: ",
 	}
 
-	context.logger = log.create_console_logger(
-		opt = {.Level, .Terminal_Color, .Short_File_Path, .Line},
-	)
+	when ODIN_DEBUG {
+		LOGGER_OPT :: log.Options{.Level, .Terminal_Color, .Short_File_Path, .Line}
+	} else {
+		LOGGER_OPT :: log.Options{.Level, .Terminal_Color}
+	}
+	context.logger = log.create_console_logger(opt = LOGGER_OPT)
 
 	opt: Option
 	flags.parse_or_exit(&opt, os.args, .Odin)

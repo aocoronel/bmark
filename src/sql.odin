@@ -21,7 +21,11 @@ sql_error :: #force_inline proc(
 	status: sqlite.Status,
 	loc := #caller_location,
 ) {
-	log.errorf("status %d: %s", status, sqlite.errmsg(db), location = loc)
+	when ODIN_DEBUG {
+		log.errorf("status %d: %s", status, sqlite.errmsg(db), location = loc)
+	} else {
+		log.errorf("%s", sqlite.errmsg(db), location = loc)
+	}
 }
 
 begin_transaction :: #force_inline proc(db: ^sqlite.SQLite3) -> bool {
