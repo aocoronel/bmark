@@ -180,7 +180,7 @@ HELP :: `Usage: (debug,release) [option]
 Options:
   -nobuild   | Only get dependencies
 	-force     | Force rebuild
-	-local     | Use local dependencies`
+	-global    | Use global dependencies`
 
 main :: proc() {
 	context.logger = log.create_console_logger(
@@ -198,12 +198,12 @@ main :: proc() {
 	}
 
 	mode: string = os.args[1]
-	nobuild, force, local: bool
-	parse_flags({{"local", &local}, {"nobuild", &nobuild}, {"force", &force}}, HELP, os.args[2:])
+	nobuild, force, global: bool
+	parse_flags({{"global", &global}, {"nobuild", &nobuild}, {"force", &force}}, HELP, os.args[2:])
 
 	os.make_directory("bin")
 
-	if local {
+	if !global {
 		clone("https://github.com/aocoronel/odd")
 		clone("https://github.com/aocoronel/odin-sqlite3")
 		ln("./shared/odd-git/odd/", "./shared/odd")
@@ -219,7 +219,7 @@ main :: proc() {
 	if nobuild do return
 
 	source_code :: "./src"
-	deps := "-collection:shared=shared/" if local else ""
+	deps := "" if global else "-collection:shared=shared/"
 
 	ODIN_FLAGS :: []string{"-show-timings", "-custom-attribute:command", "-out:bin/bmark"}
 

@@ -23,7 +23,7 @@ This tool was created, because I feel both `buku` and `bmm` offer unnecessary fe
 
 ```bash
 git clone --depth 1 https://github.com/aocoronel/bmark
-odin run . -- release -local
+odin run . -- release
 ```
 
 ## Usage
