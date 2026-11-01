@@ -11,95 +11,114 @@ import "core:fmt"
 import "core:log"
 import "core:os"
 
-Option :: struct {
-	name: string,
-	var:  any,
-}
-
 tprintf :: fmt.tprintf
-SHARED :: "./shared"
 
 /*
 Check os.error and log error
 */
-_os_error :: proc(err: os.Error, loc := #caller_location) -> bool {
+os_error :: proc(err: os.Error, ctx: any = nil, loc := #caller_location) -> bool {
 	if err != nil {
-		log.error(os.error_string(err), location = loc)
+		if ctx == nil {
+			log.error(os.error_string(err), location = loc)
+		} else {
+			log.error(ctx, os.error_string(err), location = loc)
+		}
 		return false
 	}
 	return true
 }
 
 /*
+Prints error for you to return a bool instead
+Convenience to run multiple processes
+*/
+start :: proc(
+	commands: []string,
+	stdin := os.stdin,
+	stderr := os.stderr,
+	stdout := os.stdout,
+	working_dir := "",
+	loc := #caller_location,
+) -> (
+	p: os.Process,
+	ok: bool,
+) {
+	err: os.Error
+	p, err = os.process_start(
+		{
+			stderr = stderr,
+			stdout = stdout,
+			stdin = stdin,
+			command = commands,
+			working_dir = working_dir,
+		},
+	)
+	os_error(err, commands, loc) or_return
+	return p, true
+}
+
+/*
+Prints error for you to return a bool instead
+*/
+wait :: proc(process: os.Process, loc := #caller_location) -> bool {
+	state, err := os.process_wait(process)
+	os_error(err, loc = loc) or_return
+	return state.exit_code == 0
+}
+
+sh :: proc {
+	sh_static,
+	sh_dynamic,
+}
+
+/*
 Executes a command
 */
-sh :: proc(commands: []string, working_dir := "") -> bool {
+sh_static :: proc(commands: []string, working_dir := "", loc := #caller_location) -> bool {
 	fmt.print("| ")
 	for cmd in commands {
 		fmt.print(cmd)
 		fmt.print(' ')
 	}
 	fmt.print('\n')
-	process, perr := os.process_start(
-		{
-			stderr = os.stderr,
-			stdout = os.stdout,
-			stdin = os.stdin,
-			command = commands,
-			working_dir = working_dir,
-		},
-	)
-	_os_error(perr) or_return
-	state, werr := os.process_wait(process)
-	_os_error(werr) or_return
-	return state.exit_code == 0
+	process := start(commands, working_dir = working_dir, loc = loc) or_return
+	return wait(process, loc = loc)
 }
 
 /*
-Symlink
+Convenient wrapper to sh_static.
+Use case: You can define reusable flags/args
 */
-ln :: proc(src, dst: string) -> (err: os.Error) {
-	absolute_src := os.get_absolute_path(src, context.temp_allocator) or_return
-	os.make_directory_all(os.dir(dst))
-	return os.symlink(absolute_src, dst)
-}
-
-/*
-Clone a git repository
-*/
-clone :: proc(repo: string) -> bool {
-	return sh({"git", "clone", "--depth", "1", repo, tprintf("%s/%s-git", SHARED, os.base(repo))})
-}
-
-/*
-Pull a git repository
-*/
-pull :: proc(repo: string) -> bool {
-	return sh({"git", "-C", tprintf("%s/%s-git", SHARED, os.base(repo)), "pull", "--depth", "1"})
-}
-
-/*
-Pull a git repository
-*/
-odin :: proc(cmd, path: string, args: ..[]string) -> bool {
+sh_dynamic :: proc(args: ..union {
+		[]string,
+		string,
+	}, working_dir := "", loc := #caller_location) -> bool {
 	cmds := make([dynamic]string, allocator = context.temp_allocator)
-	append(&cmds, "odin", cmd, path)
 	for flags in args {
-		idx := len(cmds)
-		resize(&cmds, len(cmds) + len(flags))
-		copy(cmds[idx:], flags)
+		switch v in flags {
+		case []string:
+			length := len(cmds)
+			resize(&cmds, len(cmds) + len(v))
+			copy(cmds[length:], v)
+		case string:
+			append(&cmds, v)
+		}
+
 	}
-	return sh(cmds[:])
+	return sh(cmds[:], working_dir, loc = loc)
 }
 
 /*
 Lightweight RTTI flag parser
 */
-parse_flags :: proc(opts: []Option, help: string) {
+parse_flags :: proc(opts: []struct {
+		name: string,
+		var:  any,
+	}, help: string, args := os.args) {
 	is_opt :: proc(arg: string) -> bool {return !(arg[0] == '-')}
 	i: int
 
-	for arg in os.args {
+	for arg in args {
 		if len(arg) < 2 do continue
 		switch arg[1:] {
 		case "h", "help":
@@ -108,8 +127,8 @@ parse_flags :: proc(opts: []Option, help: string) {
 		}
 	}
 
-	for ; i < len(os.args); i += 1 {
-		arg := os.args[i]
+	for ; i < len(args); i += 1 {
+		arg := args[i]
 
 		for &opt in opts {
 			if len(arg) < 2 do continue
@@ -119,8 +138,8 @@ parse_flags :: proc(opts: []Option, help: string) {
 			case ^bool:
 				v^ = !v^
 			case ^string:
-				if i + 1 >= len(os.args) do return
-				value := os.args[i + 1]
+				if i + 1 >= len(args) do return
+				value := args[i + 1]
 				is_opt(value) or_continue
 				v^ = value
 			}
@@ -131,8 +150,35 @@ parse_flags :: proc(opts: []Option, help: string) {
 }
 /// END build.odin
 
-HELP :: `Usage: (debug,release) [-force] [-local]
+/*
+Symlink
+*/
+ln :: proc(src, dst: string, loc := #caller_location) -> bool {
+	if os.exists(dst) do return true
+	absolute_src, err := os.get_absolute_path(src, context.temp_allocator)
+	os_error(err, src, loc = loc)
+	os.make_directory_all(os.dir(dst))
+	err = os.symlink(absolute_src, dst)
+	if err != nil {
+		log.error("%s -> %s:", src, dst, os.error_string(err), location = loc)
+		return false
+	}
+	return true
+}
+
+SHARED :: "./shared"
+/*
+Clone a git repository
+*/
+clone :: proc(repo: string, loc := #caller_location) -> bool {
+	path := tprintf("%s/%s-git", SHARED, os.base(repo))
+	if os.exists(path) do return true
+	return sh({"git", "clone", "--depth", "1", repo, path}, loc = loc)
+}
+
+HELP :: `Usage: (debug,release) [option]
 Options:
+  -nobuild   | Only get dependencies
 	-force     | Force rebuild
 	-local     | Use local dependencies`
 
@@ -142,42 +188,35 @@ main :: proc() {
 	)
 	defer log.destroy_console_logger(context.logger)
 
-	mode: string
-	force, local: bool
-	parse_flags({{"mode", &mode}, {"local", &local}, {"force", &force}}, HELP)
-
-	if mode == "" {
-		log.errorf("mode isn't set. Valid values: debug, release")
+	if len(os.args) < 2 {
+		log.error(
+			"Compilation mode is undefined. Please run either\n" +
+			"  odin run . -- debug\n" +
+			"  odin run . -- release",
+		)
 		return
 	}
 
+	mode: string = os.args[1]
+	nobuild, force, local: bool
+	parse_flags({{"local", &local}, {"nobuild", &nobuild}, {"force", &force}}, HELP, os.args[2:])
+
 	os.make_directory("bin")
 
-	if force || !os.exists("./bin/generator") {
-		odin("build", "./tools/generator.odin", {"-out:bin/generator", "-file"})
+	if local {
+		clone("https://github.com/aocoronel/odd")
+		clone("https://github.com/aocoronel/odin-sqlite3")
+		ln("./shared/odd-git/odd/", "./shared/odd")
+		ln("./shared/odin-sqlite3-git/sqlite3/", "./shared/sqlite3")
 	}
+
+	if force || !os.exists("./bin/generator") {
+		sh("odin", "build", "./tools/generator.odin", "-out:bin/generator", "-file")
+	}
+
 	sh({"./bin/generator", "./src/", "./src/doc.cmd"})
 
-	if local {
-		if !os.exists("./shared/odd-git") {
-			clone("https://github.com/aocoronel/odd")
-		}
-		if !os.exists("./shared/odd") {
-			err := ln("./shared/odd-git/odd/", "./shared/odd")
-			if err != nil {
-				log.error(os.error_string(err))
-			}
-		}
-		if !os.exists("./shared/odin-sqlite3-git") {
-			clone("https://github.com/aocoronel/odin-sqlite3")
-		}
-		if !os.exists("./shared/odin-sqlite3") {
-			err := ln("./shared/odin-sqlite3-git/sqlite3/", "./shared/sqlite3")
-			if err != nil {
-				log.error(os.error_string(err))
-			}
-		}
-	}
+	if nobuild do return
 
 	source_code :: "./src"
 	deps := "-collection:shared=shared/" if local else ""
@@ -186,9 +225,9 @@ main :: proc() {
 
 	switch mode {
 	case "debug":
-		odin("build", source_code, ODIN_FLAGS, {deps, "-debug"})
+		sh("odin", "build", source_code, ODIN_FLAGS, deps, "-debug")
 	case "release":
-		odin("build", source_code, ODIN_FLAGS, {deps, "-o:speed"})
+		sh("odin", "build", source_code, ODIN_FLAGS, deps, "-o:speed")
 	case:
 		log.errorf("Invalid mode: %q", mode)
 	}
