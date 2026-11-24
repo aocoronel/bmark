@@ -1,4 +1,6 @@
 package build
+import "core:c/libc"
+import "core:sys/posix"
 
 /// BEGIN build.odin
 
@@ -148,6 +150,28 @@ parse_flags :: proc(opts: []struct {
 	}
 	return
 }
+
+BUILD_FILE :: "build"
+go_build_urself :: proc() -> bool {
+	source, bin: os.File_Info
+	err: os.Error
+	source, err = os.stat(BUILD_FILE + ".odin", context.temp_allocator)
+	if err != nil {
+		log.error(os.error_string(err))
+		return false
+	}
+	bin, err = os.stat(BUILD_FILE, context.temp_allocator)
+	if err != nil {
+		log.error(os.error_string(err))
+		return false
+	}
+	if source.modification_time._nsec > bin.modification_time._nsec {
+		log.info(BUILD_FILE + ".odin", "changed.", "Recompiling...")
+		sh("odin", "run", ".", "-keep-executable", "-out:" + BUILD_FILE, "--", os.args[1:])
+		return false
+	}
+	return true
+}
 /// END build.odin
 
 /*
@@ -183,10 +207,20 @@ Options:
 	-global    | Use global dependencies`
 
 main :: proc() {
+	log.Level_Headers = {
+		0 ..< 10 = "> debug: ",
+		10 ..< 20 = "> info: ",
+		20 ..< 30 = "> warning: ",
+		30 ..< 40 = "> error: ",
+		40 ..< 50 = "> fatal: ",
+	}
+
 	context.logger = log.create_console_logger(
 		opt = {.Level, .Terminal_Color, .Short_File_Path, .Line},
 	)
 	defer log.destroy_console_logger(context.logger)
+
+	if !go_build_urself() do return
 
 	if len(os.args) < 2 {
 		log.error(
