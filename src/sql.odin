@@ -78,7 +78,7 @@ get_id :: proc(
 	defer rt.delete(rows)
 	for {
 		rc = sqlite.step(stmt)
-		if rc != nil {
+		if rc != .Row {
 			if rc == .Done do break
 			sql_error(db, rc, loc = loc)
 			return
