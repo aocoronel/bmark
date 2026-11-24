@@ -4,12 +4,12 @@ package main
 Extra abstractions for the SQLite bindings
 */
 
-import odin "base:runtime"
+import rt "base:runtime"
 import "core:fmt"
 import "core:log"
 import sqlite "shared:sqlite3"
 
-print_row :: proc(rows: [dynamic]sqlite.SQLite_Types, ctx: rawptr) {
+print_row :: proc(rows: []sqlite.SQLite_Types, ctx: rawptr) {
 	for row in rows {
 		fmt.printf("%v%c", row, SEPARATOR)
 	}
@@ -18,7 +18,7 @@ print_row :: proc(rows: [dynamic]sqlite.SQLite_Types, ctx: rawptr) {
 
 sql_error :: #force_inline proc(
 	db: ^sqlite.SQLite3,
-	status: sqlite.Status,
+	status: sqlite.Result_Code,
 	loc := #caller_location,
 ) {
 	when ODIN_DEBUG {
@@ -50,7 +50,7 @@ execute :: proc(db: ^sqlite.SQLite3, sql: string, args: ..any, loc := #caller_lo
 		fmt.print(sqlite.shell_error_context(db, sql))
 		return false
 	}
-	status = sqlite.execute(stmt)
+	status = sqlite.exec(stmt)
 	if status != .Done {
 		sql_error(db, status, loc)
 		return false
@@ -69,20 +69,21 @@ get_id :: proc(
 ) {
 	id = -1
 	query := fmt.tprintf("SELECT %s FROM %s WHERE %s = ? LIMIT 1", id_string, table, input_string)
-	stmt, status := sqlite.prepare(db, query, arg)
-	if status != nil {
-		sql_error(db, status, loc)
+	stmt, rc := sqlite.prepare(db, query, arg)
+	if rc != nil {
+		sql_error(db, rc, loc)
 		return
 	}
-	rows: [dynamic]sqlite.SQLite_Types
-	defer odin.delete(rows)
+	rows: []sqlite.SQLite_Types
+	defer rt.delete(rows)
 	for {
-		rows, status = sqlite.execute(db, stmt, rows)
-		if status != nil {
-			if status == .Done do break
-			sql_error(db, status, loc = loc)
+		rc = sqlite.step(stmt)
+		if rc != nil {
+			if rc == .Done do break
+			sql_error(db, rc, loc = loc)
 			return
 		}
+		rows = sqlite.exec_dynamic(stmt)
 		if id == -1 {
 			id = cast(int)rows[0].(i64)
 		}
@@ -99,22 +100,25 @@ execute_row :: proc(
 	ctx: rawptr = nil,
 	loc := #caller_location,
 ) -> bool {
-	stmt, status := sqlite.prepare(db, sql, ..args)
-	if status != nil {
-		sql_error(db, status, loc)
+	stmt, rc := sqlite.prepare(db, sql, ..args)
+	if rc != nil {
+		sql_error(db, rc, loc)
 		fmt.print(sqlite.shell_error_context(db, sql))
 		return false
 	}
-	rows: [dynamic]sqlite.SQLite_Types
-	defer odin.delete(rows)
+	rows: []sqlite.SQLite_Types
+	defer rt.delete(rows)
 	for {
-		rows, status = sqlite.execute(db, stmt, rows)
-		if status != nil {
-			if status == .Done do break
-			sql_error(db, status, loc = loc)
-			return false
-		}
+		rc = sqlite.step(stmt)
+		if rc != .Row do break
+		rows = sqlite.exec_dynamic(stmt)
 		loop_handler(rows, ctx)
+		rt.delete(rows)
+	}
+	rc = sqlite.finalize(stmt)
+	if rc != nil {
+		sql_error(db, rc, loc = loc)
+		return false
 	}
 	return true
 }

@@ -10,8 +10,8 @@ import "core:os"
 import "core:strconv"
 import "core:strings"
 import "core:unicode"
-import pipe "shared:odd/pipe"
-import term "shared:odd/term"
+import pipe "shared:odd/os"
+import term "shared:odd/terminal"
 import sqlite "shared:sqlite3"
 
 VERSION :: "2.0.0"
@@ -278,14 +278,8 @@ export :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
     `
 
 	output_file := opt.url
-	rows, status := sqlite.execute(db, context.allocator, query)
-	defer {
-		for row in rows {
-			odin.delete(row)
-		}
-		odin.delete(rows)
-	}
-	if status != .Done {
+	rows, status := sqlite.exec_dynamic(db, query)
+	if status != .Ok {
 		sql_error(db, status)
 		return false
 	}
@@ -849,7 +843,7 @@ Invalid lines are ignored.
 bulk :: proc(db: ^sqlite.SQLite3, opt: ^Option) -> bool {
 	query :: LIST_QUERY
 
-	write_row :: proc(rows: [dynamic]sqlite.SQLite_Types, ctx: rawptr) {
+	write_row :: proc(rows: []sqlite.SQLite_Types, ctx: rawptr) {
 		sb := cast(^strings.Builder)ctx
 		rows_len := len(rows)
 		for row, i in rows {
